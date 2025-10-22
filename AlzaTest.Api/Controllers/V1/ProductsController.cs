@@ -47,14 +47,14 @@ namespace AlzaTest.Api.Controllers.V1
         [HttpPatch("{id}/stock")]
         public async Task<IActionResult> PatchProductStock(int id, [FromBody] int quantity)
         {
-            var product = await context.Products.FindAsync(id);
+            Product? product = await context.Products.FindAsync(id);
 
             if (product == null)
             {
                 return NotFound();
             }
 
-            stockUpdateQueue.Enqueue(new StockUpdate(id, quantity));
+            await stockUpdateQueue.EnqueueAsync(new StockUpdate(id, quantity));
 
             return Accepted();
         }
