@@ -3,13 +3,15 @@ using AlzaTest.Api.Services;
 using AlzaTest.Data.Data;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// builder.Services.AddDbContext<ProductDbContext>(opt => opt.UseInMemoryDatabase("ProductList"));
+builder.Services.AddDbContext<ProductDbContext>(opt => 
+    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllers();
 
 builder.Services.AddSingleton<IStockUpdateQueue, InMemoryStockUpdateQueue>();
