@@ -1,5 +1,5 @@
 using AlzaTest.Api.Services;
-using AlzaTest.Data;
+using AlzaTest.Data.Data;
 using AlzaTest.Data.Entities;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +10,7 @@ namespace AlzaTest.Api.Controllers.V1
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
-    public class ProductsV1Controller(ProductDbContext context, IStockUpdateQueue stockUpdateQueue) : ControllerBase
+    public class ProductsController(ProductDbContext context, IStockUpdateQueue stockUpdateQueue) : ControllerBase
     {
         // GET: api/v1/products
         [HttpGet]
@@ -23,7 +23,7 @@ namespace AlzaTest.Api.Controllers.V1
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var product = await context.Products.FindAsync(id);
+            Product? product = await context.Products.FindAsync(id);
 
             if (product == null)
             {

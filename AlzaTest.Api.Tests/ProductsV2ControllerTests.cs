@@ -5,10 +5,13 @@ using Microsoft.EntityFrameworkCore;
 using AlzaTest.Api.Controllers.V1;
 using AlzaTest.Api.Controllers.V2;
 using AlzaTest.Api.Services;
+using AlzaTest.Data.Data;
+using ProductsController = AlzaTest.Api.Controllers.V1.ProductsController;
+using V2 = AlzaTest.Api.Controllers.V2;
 
 namespace AlzaTest.Api.Tests
 {
-    public class ProductsV1ControllerTests
+    public class ProductsControllerTests
     {
         private DbContextOptions<ProductDbContext> CreateNewContextOptions()
         {
@@ -33,7 +36,7 @@ namespace AlzaTest.Api.Tests
 
             await using (ProductDbContext context = new(options))
             {
-                ProductsV2Controller controller = new(context);
+                V2.ProductsController controller = new(context);
 
                 // Act
                 ActionResult<IEnumerable<Product>> result = await controller.GetProducts();
@@ -58,7 +61,7 @@ namespace AlzaTest.Api.Tests
 
             await using (ProductDbContext context = new(options))
             {
-                ProductsV1Controller controller = new ProductsV1Controller(context, new InMemoryStockUpdateQueue());
+                ProductsController controller = new ProductsController(context, new InMemoryStockUpdateQueue());
 
                 // Act
                 ActionResult<Product> result = await controller.GetProduct(1);
@@ -76,7 +79,7 @@ namespace AlzaTest.Api.Tests
             // Arrange
             DbContextOptions<ProductDbContext> options = CreateNewContextOptions();
             await using ProductDbContext context = new(options);
-            ProductsV1Controller controller = new(context, new InMemoryStockUpdateQueue());
+            ProductsController controller = new(context, new InMemoryStockUpdateQueue());
 
             // Act
             ActionResult<Product> result = await controller.GetProduct(1);
@@ -93,7 +96,7 @@ namespace AlzaTest.Api.Tests
             Product newProduct = new() { Name = "New Product", ImageUrl = "new_url" };
 
             await using ProductDbContext context = new(options);
-            ProductsV1Controller controller = new(context, new InMemoryStockUpdateQueue());
+            ProductsController controller = new(context, new InMemoryStockUpdateQueue());
 
             // Act
             ActionResult<Product> result = await controller.PostProduct(newProduct);
@@ -117,7 +120,7 @@ namespace AlzaTest.Api.Tests
 
             await using (ProductDbContext context = new(options))
             {
-                ProductsV1Controller controller = new(context, new InMemoryStockUpdateQueue());
+                ProductsController controller = new(context, new InMemoryStockUpdateQueue());
 
                 // Act
                 IActionResult result = await controller.PatchProductStock(1, 20);

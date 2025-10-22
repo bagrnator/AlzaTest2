@@ -1,4 +1,5 @@
 using AlzaTest.Data;
+using AlzaTest.Data.Data;
 using AlzaTest.Data.Entities;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ namespace AlzaTest.Api.Controllers.V2
     [ApiController]
     [ApiVersion("2.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
-    public class ProductsV2Controller(ProductDbContext context) : ControllerBase
+    public class ProductsController(ProductDbContext context) : ControllerBase
     {
         // GET: api/v2/products
         [HttpGet]

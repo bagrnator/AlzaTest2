@@ -1,14 +1,10 @@
 using AlzaTest.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace AlzaTest.Data
+namespace AlzaTest.Data.Data
 {
-    public class ProductDbContext : DbContext
+    public class ProductDbContext(DbContextOptions<ProductDbContext> options) : DbContext(options)
     {
-        public ProductDbContext(DbContextOptions<ProductDbContext> options) : base(options)
-        {
-        }
-
         public DbSet<Product> Products { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

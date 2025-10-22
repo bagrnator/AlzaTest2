@@ -17,4 +17,10 @@
     <ProjectReference Include="..\AlzaTest.Data\AlzaTest.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\README.md">
+      <Link>Properties\README.md</Link>
+    </Content>
+  </ItemGroup>
+
 </Project>
