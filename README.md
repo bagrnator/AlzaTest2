@@ -16,8 +16,8 @@ This is a REST API service for managing products in an e-shop.
     dotnet run
     ```
 
-4.  The API will be available at `https://localhost:5199`.
-5.  Swagger documentation is available at `https://localhost:5199/swagger`.
+4.  The API will be available at `https://localhost:7140`.
+5.  Swagger documentation is available at `https://localhost:7140/swagger`.
 
 ## Running the Unit Tests
 

@@ -3,14 +3,13 @@ using AlzaTest.Api.Services;
 using AlzaTest.Data.Data;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<ProductDbContext>(opt => opt.UseInMemoryDatabase("ProductList"));
+// builder.Services.AddDbContext<ProductDbContext>(opt => opt.UseInMemoryDatabase("ProductList"));
 builder.Services.AddControllers();
 
 builder.Services.AddSingleton<IStockUpdateQueue, InMemoryStockUpdateQueue>();
@@ -49,6 +48,15 @@ if (app.Environment.IsDevelopment())
         }
     });
 }
+
+// Create and seed the database.
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
+    dbContext.Database.EnsureCreated();
+    dbContext.Seed();
+}
+
 
 app.UseHttpsRedirection();
 

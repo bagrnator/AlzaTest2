@@ -7,9 +7,10 @@ namespace AlzaTest.Data.Data
     {
         public DbSet<Product> Products { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public void Seed()
         {
-            modelBuilder.Entity<Product>().HasData(
+            var productsToSeed = new List<Product>
+            {
                 new Product
                 {
                     Id = 1,
@@ -37,7 +38,16 @@ namespace AlzaTest.Data.Data
                     Quantity = 50,
                     ImageUrl = "https://via.placeholder.com/150/24f355"
                 }
-            );
+            };
+
+            var existingProductIds = Products.Select(p => p.Id).ToList();
+            var productsToAdd = productsToSeed.Where(p => !existingProductIds.Contains(p.Id)).ToList();
+
+            if (productsToAdd.Any())
+            {
+                Products.AddRange(productsToAdd);
+                SaveChanges();
+            }
         }
     }
 }
