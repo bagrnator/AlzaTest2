@@ -1,9 +1,6 @@
-using AlzaTest.Data;
 using AlzaTest.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using AlzaTest.Api.Controllers.V1;
-using AlzaTest.Api.Controllers.V2;
 using AlzaTest.Api.Services;
 using AlzaTest.Data.Data;
 using ProductsController = AlzaTest.Api.Controllers.V1.ProductsController;
@@ -61,7 +58,7 @@ namespace AlzaTest.Api.Tests
 
             await using (ProductDbContext context = new(options))
             {
-                ProductsController controller = new ProductsController(context, new InMemoryStockUpdateQueue());
+                ProductsController controller = new(context, new InMemoryStockUpdateQueue());
 
                 // Act
                 ActionResult<Product> result = await controller.GetProduct(1);

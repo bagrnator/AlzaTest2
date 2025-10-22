@@ -3,6 +3,7 @@ using AlzaTest.Api.Services;
 using AlzaTest.Data.Data;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -14,7 +15,7 @@ builder.Services.AddDbContext<ProductDbContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllers();
 
-builder.Services.AddSingleton<IStockUpdateQueue, InMemoryStockUpdateQueue>();
+builder.Services.AddSingleton<IStockUpdateQueue, KafkaStockUpdateQueue>();
 builder.Services.AddHostedService<StockUpdateService>();
 
 builder.Services.AddApiVersioning(options =>

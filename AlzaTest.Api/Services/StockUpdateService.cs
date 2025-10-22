@@ -1,45 +1,63 @@
-using AlzaTest.Data;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System.Threading;
-using System.Threading.Tasks;
 using AlzaTest.Data.Data;
+using Confluent.Kafka;
+using System.Text.Json;
+using AlzaTest.Data.Entities;
 
 namespace AlzaTest.Api.Services
 {
-    public class StockUpdateService : BackgroundService
+    public class StockUpdateService(ILogger<StockUpdateService> logger, IServiceScopeFactory scopeFactory, IConfiguration configuration)
+        : BackgroundService
     {
-        private readonly ILogger<StockUpdateService> _logger;
-        private readonly IStockUpdateQueue _queue;
-        private readonly IServiceScopeFactory _scopeFactory;
-
-        public StockUpdateService(ILogger<StockUpdateService> logger, IStockUpdateQueue queue, IServiceScopeFactory scopeFactory)
-        {
-            _logger = logger;
-            _queue = queue;
-            _scopeFactory = scopeFactory;
-        }
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            ConsumerConfig consumerConfig = new()
+            {
+                BootstrapServers = configuration["Kafka:BootstrapServers"],
+                GroupId = "stock-update-consumer-group",
+                AutoOffsetReset = AutoOffsetReset.Earliest
+            };
+
+            string? topic = configuration["Kafka:StockUpdateTopic"];
+
+            using IConsumer<Ignore, string>? consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
+            consumer.Subscribe(topic);
+            logger.LogInformation($"Subscribed to Kafka topic: {topic}");
+
             while (!stoppingToken.IsCancellationRequested)
             {
-                var stockUpdate = await _queue.DequeueAsync();
-
-                using (var scope = _scopeFactory.CreateScope())
+                try
                 {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
-                    var product = await dbContext.Products.FindAsync(stockUpdate.ProductId);
+                    ConsumeResult<Ignore, string>? consumeResult = consumer.Consume(stoppingToken);
+                    StockUpdate? stockUpdate = JsonSerializer.Deserialize<StockUpdate>(consumeResult.Message.Value);
+
+                    if (stockUpdate == null) continue;
+                    using IServiceScope scope = scopeFactory.CreateScope();
+                    ProductDbContext dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
+                    Product? product = await dbContext.Products.FindAsync(new object[] { stockUpdate.ProductId }, cancellationToken: stoppingToken);
 
                     if (product != null)
                     {
                         product.Quantity = stockUpdate.Quantity;
                         await dbContext.SaveChangesAsync(stoppingToken);
-                        _logger.LogInformation($"Stock for product {product.Id} updated to {product.Quantity}");
+                        logger.LogInformation($"Stock for product {product.Id} updated to {product.Quantity}");
+                    }
+                    else
+                    {
+                        logger.LogWarning($"Product with ID {stockUpdate.ProductId} not found.");
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    logger.LogInformation("Kafka consumer stopping.");
+                    break;
+                }
+                catch (Exception ex)
+                { 
+                    logger.LogError(ex, "Error processing Kafka message.");
+                }
             }
+
+            consumer.Close();
         }
     }
 }

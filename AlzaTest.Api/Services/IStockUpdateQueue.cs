@@ -6,7 +6,7 @@ namespace AlzaTest.Api.Services
 
     public interface IStockUpdateQueue
     {
-        void Enqueue(StockUpdate stockUpdate);
+        Task EnqueueAsync(StockUpdate stockUpdate);
         Task<StockUpdate> DequeueAsync();
     }
 }

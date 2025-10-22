@@ -11,6 +11,11 @@ namespace AlzaTest.Api.Services
             _queue.Writer.TryWrite(stockUpdate);
         }
 
+        public async Task EnqueueAsync(StockUpdate stockUpdate)
+        {
+             await _queue.Writer.WriteAsync(stockUpdate);
+        }
+
         public async Task<StockUpdate> DequeueAsync()
         {
             return await _queue.Reader.ReadAsync();
