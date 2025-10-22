@@ -6,22 +6,14 @@ using System.Threading.Tasks;
 
 namespace AlzaTest.Api.Services
 {
-    public class KafkaStockUpdateQueue : IStockUpdateQueue
+    public class KafkaStockUpdateQueue(IConfiguration configuration, KafkaProducerFactory producerFactory, ILogger<KafkaStockUpdateQueue> logger)
+        : IStockUpdateQueue
     {
-        private readonly KafkaProducerFactory _producerFactory;
-        private readonly string _topic;
-        private readonly ILogger<KafkaStockUpdateQueue> _logger;
-
-        public KafkaStockUpdateQueue(IConfiguration configuration, KafkaProducerFactory producerFactory, ILogger<KafkaStockUpdateQueue> logger)
-        {
-            _topic = configuration["Kafka:StockUpdateTopic"];
-            _producerFactory = producerFactory;
-            _logger = logger;
-        }
+        private readonly string? _topic = configuration["Kafka:StockUpdateTopic"];
 
         public Task EnqueueAsync(StockUpdate stockUpdate)
         {
-            var producer = _producerFactory.GetProducer();
+            var producer = producerFactory.GetProducer();
             var message = JsonSerializer.Serialize(stockUpdate);
 
             // Use the non-blocking Produce method with a delivery handler callback
@@ -29,11 +21,11 @@ namespace AlzaTest.Api.Services
             {
                 if (deliveryReport.Error.Code != ErrorCode.NoError)
                 {
-                    _logger.LogError($"Failed to deliver message: {deliveryReport.Error.Reason}");
+                    logger.LogError($"Failed to deliver message: {deliveryReport.Error.Reason}");
                 }
                 else
                 {
-                    _logger.LogInformation($"Message for product {stockUpdate.ProductId} delivered to {deliveryReport.TopicPartitionOffset}");
+                    logger.LogInformation($"Message for product {stockUpdate.ProductId} delivered to {deliveryReport.TopicPartitionOffset}");
                 }
             });
 
