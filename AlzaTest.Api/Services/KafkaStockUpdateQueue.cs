@@ -1,5 +1,6 @@
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -7,23 +8,36 @@ namespace AlzaTest.Api.Services
 {
     public class KafkaStockUpdateQueue : IStockUpdateQueue
     {
-        private readonly IProducer<Null, string> _producer;
+        private readonly KafkaProducerFactory _producerFactory;
         private readonly string _topic;
+        private readonly ILogger<KafkaStockUpdateQueue> _logger;
 
-        public KafkaStockUpdateQueue(IConfiguration configuration)
-        { 
-            var producerConfig = new ProducerConfig
-            {
-                BootstrapServers = configuration["Kafka:BootstrapServers"]
-            };
-            _producer = new ProducerBuilder<Null, string>(producerConfig).Build();
+        public KafkaStockUpdateQueue(IConfiguration configuration, KafkaProducerFactory producerFactory, ILogger<KafkaStockUpdateQueue> logger)
+        {
             _topic = configuration["Kafka:StockUpdateTopic"];
+            _producerFactory = producerFactory;
+            _logger = logger;
         }
 
-        public async Task EnqueueAsync(StockUpdate stockUpdate)
+        public Task EnqueueAsync(StockUpdate stockUpdate)
         {
+            var producer = _producerFactory.GetProducer();
             var message = JsonSerializer.Serialize(stockUpdate);
-            await _producer.ProduceAsync(_topic, new Message<Null, string> { Value = message });
+
+            // Use the non-blocking Produce method with a delivery handler callback
+            producer.Produce(_topic, new Message<Null, string> { Value = message }, (deliveryReport) =>
+            {
+                if (deliveryReport.Error.Code != ErrorCode.NoError)
+                {
+                    _logger.LogError($"Failed to deliver message: {deliveryReport.Error.Reason}");
+                }
+                else
+                {
+                    _logger.LogInformation($"Message for product {stockUpdate.ProductId} delivered to {deliveryReport.TopicPartitionOffset}");
+                }
+            });
+
+            return Task.CompletedTask;
         }
 
         public Task<StockUpdate> DequeueAsync()

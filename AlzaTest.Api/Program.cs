@@ -15,6 +15,7 @@ builder.Services.AddDbContext<ProductDbContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllers();
 
+builder.Services.AddSingleton<KafkaProducerFactory>();
 builder.Services.AddSingleton<IStockUpdateQueue, KafkaStockUpdateQueue>();
 builder.Services.AddHostedService<StockUpdateService>();
 
