@@ -5,25 +5,35 @@ using AlzaTest.Data.Entities;
 
 namespace AlzaTest.Api.Services
 {
-    public class StockUpdateService(ILogger<StockUpdateService> logger, IServiceScopeFactory scopeFactory, IConfiguration configuration)
-        : BackgroundService
+    public class StockUpdateService : BackgroundService
     {
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        private readonly ILogger<StockUpdateService> _logger;
+        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IConfiguration _configuration;
+
+        public StockUpdateService(ILogger<StockUpdateService> logger, IServiceScopeFactory scopeFactory, IConfiguration configuration)
         {
-            return Task.Run(async () =>
+            _logger = logger;
+            _scopeFactory = scopeFactory;
+            _configuration = configuration;
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            await Task.Run(async () =>
             {
                 ConsumerConfig consumerConfig = new()
                 {
-                    BootstrapServers = configuration["Kafka:BootstrapServers"],
+                    BootstrapServers = _configuration["Kafka:BootstrapServers"],
                     GroupId = "stock-update-consumer-group",
                     AutoOffsetReset = AutoOffsetReset.Earliest
                 };
 
-                string? topic = configuration["Kafka:StockUpdateTopic"];
+                string? topic = _configuration["Kafka:StockUpdateTopic"];
 
                 using IConsumer<Ignore, string>? consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
                 consumer.Subscribe(topic);
-                logger.LogInformation($"Subscribed to Kafka topic: {topic}");
+                _logger.LogInformation($"Subscribed to Kafka topic: {topic}");
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
@@ -41,10 +51,10 @@ namespace AlzaTest.Api.Services
             try
             {
                 ConsumeResult<Ignore, string>? consumeResult = consumer.Consume(stoppingToken);
-                StockUpdate? stockUpdate = JsonSerializer.Deserialize<StockUpdate>(consumeResult.Message.Value);
+                StockUpdate? stockUpdate = JsonSerializer.Deserialize<StockUpdate>(consumeResult.Message.Value, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                 if (stockUpdate == null) return true;
-                using IServiceScope scope = scopeFactory.CreateScope();
+                using IServiceScope scope = _scopeFactory.CreateScope();
                 ProductDbContext dbContext = scope.ServiceProvider.GetRequiredService<ProductDbContext>();
                 Product? product = await dbContext.Products.FindAsync(new object[] { stockUpdate.ProductId }, cancellationToken: stoppingToken);
 
@@ -52,21 +62,21 @@ namespace AlzaTest.Api.Services
                 {
                     product.Quantity = stockUpdate.Quantity;
                     await dbContext.SaveChangesAsync(stoppingToken);
-                    logger.LogInformation($"Stock for product {product.Id} updated to {product.Quantity}");
+                    _logger.LogInformation($"Stock for product {product.Id} updated to {product.Quantity}");
                 }
                 else
                 {
-                    logger.LogWarning($"Product with ID {stockUpdate.ProductId} not found.");
+                    _logger.LogWarning($"Product with ID {stockUpdate.ProductId} not found.");
                 }
             }
             catch (OperationCanceledException)
             {
-                logger.LogInformation("Kafka consumer stopping.");
+                _logger.LogInformation("Kafka consumer stopping.");
                 return false;
             }
             catch (Exception ex)
-            { 
-                logger.LogError(ex, "Error processing Kafka message.");
+            {
+                _logger.LogError(ex, "Error processing Kafka message.");
             }
 
             return true;
