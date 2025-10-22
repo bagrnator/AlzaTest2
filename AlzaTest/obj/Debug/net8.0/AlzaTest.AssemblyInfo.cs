@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AlzaTest")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+293103ea86ed4d313cafae18af8f2b7daf3551a8")]
 [assembly: System.Reflection.AssemblyProductAttribute("AlzaTest")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AlzaTest")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

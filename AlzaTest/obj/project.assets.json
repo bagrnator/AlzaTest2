@@ -490,11 +490,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Work\\Personal\\AlzaTest\\AlzaTest\\AlzaTest.csproj",
+      "projectUniqueName": "D:\\Work\\Personal\\AlzaTest2\\AlzaTest\\AlzaTest.csproj",
       "projectName": "AlzaTest",
-      "projectPath": "D:\\Work\\Personal\\AlzaTest\\AlzaTest\\AlzaTest.csproj",
+      "projectPath": "D:\\Work\\Personal\\AlzaTest2\\AlzaTest\\AlzaTest.csproj",
       "packagesPath": "C:\\Users\\it\\.nuget\\packages\\",
-      "outputPath": "D:\\Work\\Personal\\AlzaTest\\AlzaTest\\obj\\",
+      "outputPath": "D:\\Work\\Personal\\AlzaTest2\\AlzaTest\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\DevExpress 24.1\\Components\\Offline Packages",
