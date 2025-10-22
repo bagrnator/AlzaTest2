@@ -1,5 +1,5 @@
 # Visual Studio
-.vs/
+vs/
 
 # Build results
 [Bb]in/
@@ -21,3 +21,6 @@
 # Cache files
 *.nuget.props
 *.nuget.targets
+
+# Databases
+*.db
